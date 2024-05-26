@@ -1,0 +1,81 @@
+{
+  "name": "lookml-check",
+  "displayName": "LookML check",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.89.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AnhDuc1202/lookml-check.git"
+  },
+  "author": {
+    "name": "Anh Duc"
+  },
+  "configurationDefaults": {
+    "[lookml]": {
+      "editor.semanticHighlighting.enabled": true
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "lookml",
+        "aliases": [
+          "LookML",
+          "lookml"
+        ],
+        "extensions": [
+          ".lkml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lookml",
+        "scopeName": "source.lookml",
+        "path": "./syntaxes/lookml.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "uiTheme": "vs",
+        "label": "LookML",
+        "path": "./theme/lookml-colour-theme.json"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "lookml",
+        "scopes": {
+          "templateType": [
+            "source.lookml.scope",
+            "source.lookml.scope.type",
+            "source.lookml.scope.name",
+            "source.lookml.scope.start",
+            "source.lookml.parameter.name",
+            "string.quoted.double.lookml",
+            "source.lookml.variable",
+            "source.lookml.parameter.value.yesno",
+            "source.lookml.array",
+            "source.lookml.parameter.value",
+            "source.lookml.sql.parameter.name",
+            "source.lookml.sql.parameter.value",
+            "source.lookml.sql.parameter.close",
+            "source.lookml.sql.function.name",
+            "source.lookml.liquid",
+            "source.lookml.comment",
+            "source.lookml.constant",
+            "source.lookml.sql.keyword",
+            "source.lookml.sql.numeric"
+          ]
+        }
+      }
+    ]
+  }
+}

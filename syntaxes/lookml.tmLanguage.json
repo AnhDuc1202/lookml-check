@@ -1,0 +1,250 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+
+  "name": "LookML",
+  "patterns": [
+    { "include": "#scopes" },
+    { "include": "#comments" },
+    { "include": "#parameters" },
+    { "include": "#sql_parameters" }
+  ],
+  "repository": {
+    "comments": {
+      "name": "source.lookml.line_comment",
+      "match": "#(.+)$"
+    },
+
+    "scopes": {
+      "name": "source.lookml.scope",
+      "begin": "(\\w+)\\s*?:\\s?([\\w\\+]+)?\\s*?(\\{)",
+      "end": "(\\})",
+      "beginCaptures": {
+        "1": {
+          "name": "source.lookml.scope.type"
+        },
+        "2": {
+          "name": "source.lookml.scope.name"
+        },
+        "3": {
+          "name": "source.lookml.scope.start"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "name": "source.lookml.scope.end"
+        }
+      },
+      "patterns": [
+        { "include": "#liquid_tags" },
+        { "include": "#array" },
+        { "include": "#sql_parameters" },
+        { "include": "#parameters" },
+        { "include": "#scopes" }
+      ]
+    },
+
+    "parameters": {
+      "name": "source.lookml.parameter",
+      "begin": "(?!sql)(\\w+)\\s?:\\s?",
+      "end": "(?<=\\n)",
+      "beginCaptures": {
+        "1": {
+          "name": "source.lookml.parameter.name"
+        }
+      },
+      "patterns": [
+        {
+          "name": "source.lookml.parameter.value",
+          "match": "(.*)",
+          "captures": {
+            "1": {
+              "patterns": [
+                { "include": "#variable" },
+                { "include": "#string" },
+                { "include": "#yesno" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    "sql_parameters": {
+      "name": "source.lookml.sql.parameter",
+      "begin": "(sql\\w*)\\s?:\\s?",
+      "end": "(?<=;;)",
+      "beginCaptures": {
+        "1": {
+          "name": "source.lookml.sql.parameter.name"
+        }
+      },
+      "patterns": [
+        {
+          "name": "source.lookml.sql.parameter.value",
+          "match": "([^;]+)",
+          "captures": {
+            "1": {
+              "patterns": [
+                { "include": "#variable" },
+                { "include": "#operator" },
+                { "include": "#string" },
+                { "include": "#number" },
+                { "include": "#liquid_tags" },
+                { "include": "#liquid_output" },
+                { "include": "#sql_constant" },
+                { "include": "#sql_function" },
+                { "include": "#sql_keyword" },
+                { "include": "#sql_keyword_main" },
+                { "include": "#sql_keyword_type" },
+                { "include": "#sql_numeric" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "source.lookml.sql.parameter.close",
+          "match": ";;$"
+        }
+      ]
+    },
+
+    "string": {
+      "name": "string.quoted.double.lookml",
+      "begin": "\"|\\'",
+      "end": "\"|\\'",
+      "patterns": [{ "include": "#constant" }, { "include": "#liquid_output" }]
+    },
+
+    "number": {
+      "match": "((-|\\+)\\s*)?[0-9]+(\\.[0-9]+)?",
+      "name": "constant.numeric.lookml"
+    },
+
+    "variable": {
+      "name": "source.lookml.variable",
+      "match": "\\${[^\\}]+}"
+    },
+
+    "operator": {
+      "match": "(?:(?<=\\s)|\\b)(\\=|\\=\\=|!\\=|\\>|\\<|\\>\\=|\\<\\=|or|and|contains)(?:(?=\\s)|\\b)",
+      "captures": {
+        "1": {
+          "name": "keyword.operator.expression.lookml"
+        }
+      }
+    },
+
+    "array": {
+      "name": "source.lookml.parameter.array",
+      "begin": "(\\w+)\\s?\\:\\s?(\\[)",
+      "end": "\\]",
+      "beginCaptures": {
+        "1": { "name": "source.lookml.parameter.name" },
+        "2": { "name": "source.lookml.parameter.array.start" }
+      },
+      "patterns": [
+        { "include": "#string" },
+        {
+          "name": "source.lookml.parameter.array.delimiter",
+          "match": "\\,"
+        }
+      ],
+      "endCaptures": {
+        "0": { "name": "source.lookml.parameter.array.end" }
+      }
+    },
+
+    "yesno": {
+      "name": "source.lookml.parameter.value.yesno",
+      "match": "\\b(yes|no|yesno)\\b"
+    },
+
+    "constant": {
+      "name": "source.lookml.constant",
+      "match": "(@\\{\\w+\\})"
+    },
+
+    "liquid_tags": {
+      "name": "source.lookml.liquid",
+      "begin": "\\{(\\%)",
+      "end": "(\\%)\\}",
+      "beginCaptures": {
+        "1": { "name": "source.lookml.liquid.tag" }
+      },
+      "patterns": [
+        { "include": "#liquid_filter" },
+        { "include": "#string" },
+        { "include": "#operator" },
+        { "include": "#number" }
+      ],
+      "endCaptures": {
+        "1": { "name": "source.lookml.liquid.tag" }
+      }
+    },
+
+    "liquid_output": {
+      "name": "source.lookml.liquid.output",
+      "match": "\\{\\{.+\\}\\}"
+    },
+
+    "liquid_filter": {
+      "name": "source.lookml.liquid",
+      "match": "\\|\\s*((?![\\.0-9])[\\w\\-]+\\:?)\\s*",
+      "captures": {
+        "1": { "name": "source.lookml.liquid.filter" }
+      }
+    },
+
+    "sql_function": {
+      "name": "source.lookml.sql.function",
+      "begin": "(\\w+)(\\()",
+      "end": "(\\))",
+      "contentName": "source.lookml.sql.function.value",
+      "beginCaptures": {
+        "0": {
+          "name": "source.lookml.sql.function.name"
+        },
+        "1": {
+          "name": "source.lookml.sql.function.scope.start"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "source.lookml.sql.function.scope.end"
+        }
+      },
+      "patterns": [
+        { "include": "#variable" },
+        { "include": "#string" },
+        { "include": "#number" },
+        { "include": "#sql_constant" },
+        { "include": "#sql_keyword" },
+        { "include": "#sql_keyword_main" },
+        { "include": "#sql_keyword_type" },
+        { "include": "#operator" },
+        { "include": "#sql_function" }
+      ]
+    },
+
+    "sql_keyword": {
+      "name": "source.lookml.sql.keyword",
+      "match": "(?<!\\w)(AND|OR|IS|NOT|NULL|DISTINCT|AS|ON|WITH)(?!\\w)"
+    },
+
+    "sql_keyword_main": {
+      "name": "source.lookml.sql.keyword.main",
+      "match": "(?<!\\w)(SELECT|FROM|LEFT|JOIN|GROUP BY|INNER|ORDER BY|LIMIT)(?!\\w)"
+    },
+
+    "sql_keyword_type": {
+      "name": "source.lookml.sql.keyword.type",
+      "match": "(?<!\\w)(BOOL|BOOLEAN|VARCHAR|NUMERIC|DECIMAL|INTEGER|)(?!\\w)"
+    },
+
+    "sql_constant": {
+      "name": "source.lookml.sql.constant.language",
+      "match": "TRUE|FALSE"
+    }
+  },
+  "scopeName": "source.lookml"
+}
