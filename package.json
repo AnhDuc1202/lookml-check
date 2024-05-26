@@ -2,9 +2,11 @@
   "name": "lookml-check",
   "displayName": "LookML check",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "publisher": "anhduc",
   "engines": {
-    "vscode": "^1.89.0"
+    "vscode": "^1.89.0",
+    "node": ">=20.13.1"
   },
   "categories": [
     "Programming Languages"

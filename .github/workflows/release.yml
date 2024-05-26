@@ -1,0 +1,51 @@
+name: lookml-check
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Use Node.js version from package.json
+        id: node-version
+        run: echo "NODE_VERSION=$(jq -r '.engines.node' package.json)" >> $GITHUB_ENV
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install vsce
+        run: npm install -g vsce
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Extract current version from package.json and previous in marketplace
+        run: |
+          echo "CURRENT_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+          echo "PREVIOUS_VERSION=$(vsce show --json anhduc.lookml-check|jq -r '.versions[] |.version')" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Check for version changes and Publish VS Code Extension
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          if [ "${{ env.CURRENT_VERSION }}" != "${{ env.PREVIOUS_VERSION }}" ]; then
+            echo "Version has changed."
+            vsce package
+            vsce publish --pat $VSCE_TOKEN
+          else
+            echo "No change in version."
+          fi
+        shell: bash
