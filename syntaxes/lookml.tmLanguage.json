@@ -16,16 +16,22 @@
 
     "scopes": {
       "name": "source.lookml.scope",
-      "begin": "(\\w+)\\s*?:\\s?([\\w\\+]+)?\\s*?(\\{)",
+      "begin": "(\\w+)(?:(?::\\s)|((?:\\s+:\\s*)|(?:\\s*:\\s{2,})|(?:\\s*:\\w)|(?:\\s*:(?=\\{))))(?:(?:([\\w\\+]+)*\\s)|((?:[\\w\\+]+)*\\s*))(\\{)",
       "end": "(\\})",
       "beginCaptures": {
         "1": {
           "name": "source.lookml.scope.type"
         },
         "2": {
-          "name": "source.lookml.scope.name"
+          "name": "source.lookml.scope.start_format_1"
         },
         "3": {
+          "name": "source.lookml.scope.name"
+        },
+        "4": {
+          "name": "source.lookml.scope.start_format_2"
+        },
+        "5": {
           "name": "source.lookml.scope.start"
         }
       },
@@ -46,11 +52,14 @@
 
     "parameters": {
       "name": "source.lookml.parameter",
-      "begin": "(?!sql)(\\w+)\\s?:\\s?",
+      "begin": "(\\w+)(?<!sql[\\w_]*)(?:(?::\\s)|((?:\\s+:\\s*)|(?:\\s*:\\s{2,})|(?:\\s*:(?=[^ ]))|(?:\\s*:(?=\\{))))(?=[^ ])",
       "end": "(?<=\\n)",
       "beginCaptures": {
         "1": {
           "name": "source.lookml.parameter.name"
+        },
+        "2": {
+          "name": "source.lookml.parameter.fotmat_1"
         }
       },
       "patterns": [
@@ -72,11 +81,14 @@
 
     "sql_parameters": {
       "name": "source.lookml.sql.parameter",
-      "begin": "(sql\\w*)\\s?:\\s?",
+      "begin": "(\\w+)(?<=sql[\\w]*)(?:(?::\\s(?![\\s]|$))|(?::$)|((?:\\s+:\\s*)|(?:\\s*:(?:(?: {2,})|(?:\\s$)))|(?:\\s*:(?=[^\\s]))|(?:\\s*:(?=\\{))))",
       "end": "(?<=;;)",
       "beginCaptures": {
         "1": {
           "name": "source.lookml.sql.parameter.name"
+        },
+        "2": {
+          "name": "source.lookml.sql.parameter.fotmat_1"
         }
       },
       "patterns": [
