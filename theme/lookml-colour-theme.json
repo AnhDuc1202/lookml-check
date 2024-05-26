@@ -103,6 +103,18 @@
     {
       "scope": ["source.lookml.sql.keyword.type"],
       "settings": { "foreground": "#ff00ff" }
+    },
+    {
+      "scope": [
+        "source.lookml.scope.start_format_1",
+        "source.lookml.scope.start_format_2",
+        "source.lookml.parameter.fotmat_1",
+        "source.lookml.sql.parameter.fotmat_1"
+      ],
+      "settings": {
+        "foreground": "#FF0000",
+        "fontStyle": "italic bold underline"
+      }
     }
   ],
   "font-family": "Arial",
