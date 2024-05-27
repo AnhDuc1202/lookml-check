@@ -1,0 +1,86 @@
+name: Renew VSCE Token
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Chạy vào 0:00 UTC ngày 1 mỗi tháng
+  workflow_dispatch: # Cho phép chạy thủ công
+
+jobs:
+  renew-token:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install jsonwebtoken
+
+      - name: Generate GitHub App JWT
+        id: jwt
+        run: |
+          echo "${{ secrets.GH_APP_PRIVATE_KEY }}" > private-key.pem
+          echo "Creating GitHub App JWT..."
+          node -e "
+          const fs = require('fs');
+          const jwt = require('jsonwebtoken');
+          const privateKey = fs.readFileSync('private-key.pem');
+          const appId = process.env.GH_APP_ID;
+          const payload = {
+            iat: Math.floor(Date.now() / 1000),
+            exp: Math.floor(Date.now() / 1000) + (10 * 60),
+            iss: appId
+          };
+          const token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+          "
+          echo "jwt=$JWT" >> $GITHUB_ENV
+        env:
+          GITHUB_APP_ID: ${{ secrets.GH_APP_ID }}
+        shell: bash
+
+      - name: Get GitHub App access token
+        id: get-token
+        run: |
+          echo "Getting GitHub App access token..."
+          JWT=${{ env.CURRENT_VERSION }}
+          INSTALLATION_ID=${{ secrets.GH_APP_INSTALLATION_ID }}
+          ACCESS_TOKEN=$(curl -X POST \
+            -H "Authorization: Bearer $JWT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens | jq -r .token)
+          echo "::set-output name=token::$ACCESS_TOKEN"
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Get new VSCE token
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        run: |
+          NEW_VSCE_TOKEN=$(curl -X POST https://marketplace.visualstudio.com/_apis/userentitlements/xyz/refreshToken \
+            -H "Authorization: Basic $VSCE_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"some": "payload"}' | jq -r '.token')
+
+          if [ -z "$NEW_VSCE_TOKEN" ]; then
+            echo "Failed to obtain new VSCE token"
+            exit 1
+          fi
+
+          echo "NEW_VSCE_TOKEN=$NEW_VSCE_TOKEN" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Update GitHub Secrets
+        run: |
+          GH_TOKEN=${{ env.ACCESS_TOKEN }}
+          NEW_VSCE_TOKEN=${{ env.NEW_VSCE_TOKEN }}
+
+          # Cài đặt GitHub CLI (gh)
+          sudo apt-get install gh
+
+          echo $GH_TOKEN | gh auth login --with-token
+
+          gh secret set VSCE_TOKEN --body "$NEW_VSCE_TOKEN"
+          gh secret set VSCE_TOKEN --body "$NEW_VSCE_TOKEN"
+        env:
+          GH_TOKEN: ${{ env.ACCESS_TOKEN }}
+        shell: bash
